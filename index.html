@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Plata — Control de gastos</title>
+<style>
+  :root { --bg:#f4f6fb; --card:#fff; --text:#172033; --muted:#697386; --line:#e6eaf1; --green:#14804a; --red:#c0394b; --blue:#3157d5; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:Arial, Helvetica, sans-serif; background:var(--bg); color:var(--text); }
+  .wrap { max-width:1000px; margin:0 auto; padding:24px 16px 40px; }
+  header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:22px; }
+  .brand { display:flex; align-items:center; gap:12px; }
+  .logo { width:46px; height:46px; display:grid; place-items:center; background:#172d4b; color:white; border-radius:14px; font-size:24px; }
+  h1 { margin:0; font-size:25px; }
+  .sub { color:var(--muted); margin-top:4px; font-size:14px; }
+  .pill { border:1px solid var(--line); border-radius:999px; padding:8px 12px; color:var(--muted); font-size:12px; background:white; }
+  .summary { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:18px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:19px; box-shadow:0 5px 20px rgba(25,40,70,.035); }
+  .metric-label { font-size:13px; color:var(--muted); margin-bottom:10px; }
+  .metric { font-size:clamp(22px,3vw,30px); font-weight:700; overflow-wrap:anywhere; }
+  .green { color:var(--green); } .red { color:var(--red); }
+  .layout { display:grid; grid-template-columns: minmax(260px, .85fr) minmax(0,1.4fr); gap:18px; align-items:start; }
+  h2 { margin:0 0 16px; font-size:18px; }
+  label { display:block; margin:13px 0 6px; font-size:13px; font-weight:700; }
+  input, select { width:100%; border:1px solid #d9dfeb; border-radius:10px; padding:12px; font-size:15px; background:white; color:var(--text); }
+  input:focus, select:focus { outline:2px solid #c8d5ff; border-color:var(--blue); }
+  .types { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .type-btn { border:1px solid var(--line); border-radius:10px; padding:11px; background:white; cursor:pointer; font-weight:700; color:var(--muted); }
+  .type-btn.active.income { background:#eaf8f0; color:var(--green); border-color:#a7dfbd; }
+  .type-btn.active.expense { background:#fff0f1; color:var(--red); border-color:#f1b7bf; }
+  .primary { width:100%; margin-top:17px; padding:13px; border:0; border-radius:11px; background:var(--blue); color:white; font-size:15px; font-weight:700; cursor:pointer; }
+  .primary:hover { filter:brightness(.95); }
+  .toolbar { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
+  .toolbar h2 { margin:0; }
+  .filter { width:auto; max-width:160px; padding:9px; font-size:13px; }
+  .list { display:flex; flex-direction:column; gap:9px; }
+  .item { display:flex; align-items:center; gap:12px; padding:13px; border:1px solid var(--line); border-radius:13px; background:white; }
+  .item-icon { flex:0 0 40px; width:40px; height:40px; display:grid; place-items:center; border-radius:12px; background:#f0f3fa; font-size:19px; }
+  .item-info { min-width:0; flex:1; }
+  .item-title { font-weight:700; overflow-wrap:anywhere; }
+  .item-meta { color:var(--muted); font-size:12px; margin-top:5px; }
+  .amount { font-weight:700; white-space:nowrap; }
+  .delete { border:0; background:transparent; color:#8b93a3; cursor:pointer; font-size:18px; padding:5px; }
+  .delete:hover { color:var(--red); }
+  .empty { text-align:center; color:var(--muted); padding:34px 12px; border:1px dashed #d6dce8; border-radius:14px; line-height:1.5; }
+  .foot { color:var(--muted); text-align:center; font-size:12px; margin-top:20px; line-height:1.5; }
+  .notice { margin-top:12px; padding:10px 12px; background:#fff8e8; color:#795b14; border-radius:10px; font-size:12px; line-height:1.45; }
+  @media (max-width:700px) {
+    .wrap { padding:17px 12px 30px; }
+    header { align-items:flex-start; }
+    h1 { font-size:22px; }
+    .pill { display:none; }
+    .summary { grid-template-columns:1fr; gap:10px; }
+    .card { padding:16px; }
+    .metric { font-size:25px; }
+    .layout { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo" aria-hidden="true">$</div>
+      <div><h1>Mi Plata</h1><div class="sub">Tu plata, más clara.</div></div>
+    </div>
+    <div class="pill">Versión inicial · Gratis</div>
+  </header>
+
+  <section class="summary" aria-label="Resumen de tus finanzas">
+    <div class="card"><div class="metric-label">Ingresos del período</div><div class="metric green" id="totalIncome">$ 0</div></div>
+    <div class="card"><div class="metric-label">Gastos del período</div><div class="metric red" id="totalExpense">$ 0</div></div>
+    <div class="card"><div class="metric-label">Balance del período</div><div class="metric" id="balance">$ 0</div></div>
+  </section>
+
+  <main class="layout">
+    <section class="card">
+      <h2>Agregar movimiento</h2>
+      <form id="entryForm">
+        <label>Tipo de movimiento</label>
+        <div class="types">
+          <button class="type-btn active income" id="incomeBtn" type="button" aria-pressed="true">＋ Ingreso</button>
+          <button class="type-btn" id="expenseBtn" type="button" aria-pressed="false">− Gasto</button>
+        </div>
+        <label for="description">¿En qué consiste?</label>
+        <input id="description" maxlength="70" placeholder="Ej. Sueldo, supermercado..." required>
+        <label for="amount">Importe en pesos (ARS)</label>
+        <input id="amount" type="number" min="0.01" step="0.01" placeholder="Ej. 15000" required>
+        <label for="category">Categoría</label>
+        <select id="category">
+          <option>Salario</option><option>Trabajo extra</option><option>Ventas</option><option>Otros ingresos</option>
+        </select>
+        <label for="date">Fecha</label>
+        <input id="date" type="date" required>
+        <button class="primary" type="submit">Guardar movimiento</button>
+      </form>
+      <div class="notice">Tus movimientos se guardan en este navegador en esta computadora. Por ahora, no se sincronizan con otros dispositivos.</div>
+    </section>
+
+    <section class="card">
+      <div class="toolbar">
+        <h2>Movimientos</h2>
+        <select class="filter" id="monthFilter" aria-label="Filtrar por mes"><option value="all">Todos los meses</option></select>
+      </div>
+      <div id="entries" class="list"></div>
+    </section>
+  </main>
+  <div class="foot">Mi Plata · Prototipo personal. No se conecta a bancos ni administra cuentas bancarias.</div>
+</div>
+<script>
+(() => {
+  const STORAGE_KEY = "mi-plata-movimientos-v1";
+  const $ = id => document.getElementById(id);
+  let type = "income";
+  let entries = [];
+  try { entries = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); if (!Array.isArray(entries)) entries = []; }
+  catch { entries = []; }
+
+  const today = new Date();
+  const localDate = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
+  $("date").value = localDate;
+
+  const categories = {
+    income: ["Salario", "Trabajo extra", "Ventas", "Otros ingresos"],
+    expense: ["Comida", "Transporte", "Alquiler y servicios", "Compras", "Salud", "Entretenimiento", "Deudas", "Otros gastos"]
+  };
+
+  function money(value) {
+    return new Intl.NumberFormat("es-AR", { style:"currency", currency:"ARS", maximumFractionDigits:2 }).format(value);
+  }
+  function save() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); }
+    catch { alert("No se pudieron guardar los datos en este navegador."); }
+  }
+  function setType(next) {
+    type = next;
+    $("incomeBtn").className = "type-btn" + (type === "income" ? " active income" : "");
+    $("expenseBtn").className = "type-btn" + (type === "expense" ? " active expense" : "");
+    $("incomeBtn").setAttribute("aria-pressed", String(type === "income"));
+    $("expenseBtn").setAttribute("aria-pressed", String(type === "expense"));
+    const current = $("category").value;
+    $("category").innerHTML = "";
+    categories[type].forEach(cat => {
+      const option = document.createElement("option");
+      option.textContent = cat;
+      $("category").appendChild(option);
+    });
+    if (categories[type].includes(current)) $("category").value = current;
+  }
+  function buildMonthFilter() {
+    const select = $("monthFilter");
+    const previous = select.value;
+    const months = [...new Set(entries.map(e => e.date.slice(0,7)))].sort().reverse();
+    select.innerHTML = '<option value="all">Todos los meses</option>';
+    months.forEach(month => {
+      const [year, mon] = month.split("-");
+      const label = new Intl.DateTimeFormat("es-AR", { month:"long", year:"numeric" }).format(new Date(Number(year), Number(mon)-1, 1));
+      const opt = document.createElement("option");
+      opt.value = month; opt.textContent = label.charAt(0).toUpperCase() + label.slice(1);
+      select.appendChild(opt);
+    });
+    if ([...select.options].some(o => o.value === previous)) select.value = previous;
+  }
+  function render() {
+    buildMonthFilter();
+    const month = $("monthFilter").value;
+    const visible = entries.filter(e => month === "all" || e.date.startsWith(month)).sort((a,b) => b.date.localeCompare(a.date) || b.createdAt-a.createdAt);
+    const income = visible.filter(e => e.type === "income").reduce((sum,e) => sum + e.amount, 0);
+    const expense = visible.filter(e => e.type === "expense").reduce((sum,e) => sum + e.amount, 0);
+    $("totalIncome").textContent = money(income);
+    $("totalExpense").textContent = money(expense);
+    $("balance").textContent = money(income-expense);
+    $("balance").className = "metric " + (income-expense < 0 ? "red" : "green");
+
+    const list = $("entries");
+    list.innerHTML = "";
+    if (!visible.length) {
+      const empty = document.createElement("div");
+      empty.className = "empty";
+      empty.innerHTML = "Todavía no hay movimientos.<br>Agregá tu primer ingreso o gasto usando el formulario.";
+      list.appendChild(empty);
+      return;
+    }
+    visible.forEach(e => {
+      const row = document.createElement("div"); row.className = "item";
+      const icon = document.createElement("div"); icon.className = "item-icon"; icon.textContent = e.type === "income" ? "↙" : "↗";
+      const info = document.createElement("div"); info.className = "item-info";
+      const title = document.createElement("div"); title.className = "item-title"; title.textContent = e.description;
+      const meta = document.createElement("div"); meta.className = "item-meta";
+      const [y,m,d] = e.date.split("-");
+      meta.textContent = `${e.category} · ${d}/${m}/${y}`;
+      info.append(title,meta);
+      const amount = document.createElement("div"); amount.className = "amount " + (e.type === "income" ? "green" : "red");
+      amount.textContent = `${e.type === "income" ? "+" : "−"} ${money(e.amount)}`;
+      const del = document.createElement("button"); del.className = "delete"; del.type = "button"; del.title = "Eliminar movimiento"; del.setAttribute("aria-label","Eliminar " + e.description); del.textContent = "×";
+      del.addEventListener("click", () => {
+        if (confirm(`¿Querés eliminar el movimiento "${e.description}"?`)) {
+          entries = entries.filter(item => item.id !== e.id); save(); render();
+        }
+      });
+      row.append(icon,info,amount,del); list.appendChild(row);
+    });
+  }
+
+  $("incomeBtn").addEventListener("click", () => setType("income"));
+  $("expenseBtn").addEventListener("click", () => setType("expense"));
+  $("monthFilter").addEventListener("change", render);
+  $("entryForm").addEventListener("submit", event => {
+    event.preventDefault();
+    const description = $("description").value.trim();
+    const amount = Number($("amount").value);
+    const date = $("date").value;
+    if (!description || !Number.isFinite(amount) || amount <= 0 || !date) {
+      alert("Completá la descripción, un importe mayor que cero y la fecha."); return;
+    }
+    entries.push({
+      id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2),
+      type, description, amount, category:$("category").value, date, createdAt:Date.now()
+    });
+    save();
+    $("description").value = ""; $("amount").value = "";
+    render();
+  });
+  setType("income");
+  render();
+})();
+</script>
+</body>
+</html>
