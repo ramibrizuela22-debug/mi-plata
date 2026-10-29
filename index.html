@@ -1,230 +1,275 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mi Plata — Control de gastos</title>
-<style>
-  :root { --bg:#f4f6fb; --card:#fff; --text:#172033; --muted:#697386; --line:#e6eaf1; --green:#14804a; --red:#c0394b; --blue:#3157d5; }
-  * { box-sizing:border-box; }
-  body { margin:0; font-family:Arial, Helvetica, sans-serif; background:var(--bg); color:var(--text); }
-  .wrap { max-width:1000px; margin:0 auto; padding:24px 16px 40px; }
-  header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:22px; }
-  .brand { display:flex; align-items:center; gap:12px; }
-  .logo { width:46px; height:46px; display:grid; place-items:center; background:#172d4b; color:white; border-radius:14px; font-size:24px; }
-  h1 { margin:0; font-size:25px; }
-  .sub { color:var(--muted); margin-top:4px; font-size:14px; }
-  .pill { border:1px solid var(--line); border-radius:999px; padding:8px 12px; color:var(--muted); font-size:12px; background:white; }
-  .summary { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:18px; }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:19px; box-shadow:0 5px 20px rgba(25,40,70,.035); }
-  .metric-label { font-size:13px; color:var(--muted); margin-bottom:10px; }
-  .metric { font-size:clamp(22px,3vw,30px); font-weight:700; overflow-wrap:anywhere; }
-  .green { color:var(--green); } .red { color:var(--red); }
-  .layout { display:grid; grid-template-columns: minmax(260px, .85fr) minmax(0,1.4fr); gap:18px; align-items:start; }
-  h2 { margin:0 0 16px; font-size:18px; }
-  label { display:block; margin:13px 0 6px; font-size:13px; font-weight:700; }
-  input, select { width:100%; border:1px solid #d9dfeb; border-radius:10px; padding:12px; font-size:15px; background:white; color:var(--text); }
-  input:focus, select:focus { outline:2px solid #c8d5ff; border-color:var(--blue); }
-  .types { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-  .type-btn { border:1px solid var(--line); border-radius:10px; padding:11px; background:white; cursor:pointer; font-weight:700; color:var(--muted); }
-  .type-btn.active.income { background:#eaf8f0; color:var(--green); border-color:#a7dfbd; }
-  .type-btn.active.expense { background:#fff0f1; color:var(--red); border-color:#f1b7bf; }
-  .primary { width:100%; margin-top:17px; padding:13px; border:0; border-radius:11px; background:var(--blue); color:white; font-size:15px; font-weight:700; cursor:pointer; }
-  .primary:hover { filter:brightness(.95); }
-  .toolbar { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
-  .toolbar h2 { margin:0; }
-  .filter { width:auto; max-width:160px; padding:9px; font-size:13px; }
-  .list { display:flex; flex-direction:column; gap:9px; }
-  .item { display:flex; align-items:center; gap:12px; padding:13px; border:1px solid var(--line); border-radius:13px; background:white; }
-  .item-icon { flex:0 0 40px; width:40px; height:40px; display:grid; place-items:center; border-radius:12px; background:#f0f3fa; font-size:19px; }
-  .item-info { min-width:0; flex:1; }
-  .item-title { font-weight:700; overflow-wrap:anywhere; }
-  .item-meta { color:var(--muted); font-size:12px; margin-top:5px; }
-  .amount { font-weight:700; white-space:nowrap; }
-  .delete { border:0; background:transparent; color:#8b93a3; cursor:pointer; font-size:18px; padding:5px; }
-  .delete:hover { color:var(--red); }
-  .empty { text-align:center; color:var(--muted); padding:34px 12px; border:1px dashed #d6dce8; border-radius:14px; line-height:1.5; }
-  .foot { color:var(--muted); text-align:center; font-size:12px; margin-top:20px; line-height:1.5; }
-  .notice { margin-top:12px; padding:10px 12px; background:#fff8e8; color:#795b14; border-radius:10px; font-size:12px; line-height:1.45; }
-  @media (max-width:700px) {
-    .wrap { padding:17px 12px 30px; }
-    header { align-items:flex-start; }
-    h1 { font-size:22px; }
-    .pill { display:none; }
-    .summary { grid-template-columns:1fr; gap:10px; }
-    .card { padding:16px; }
-    .metric { font-size:25px; }
-    .layout { grid-template-columns:1fr; }
-  }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mi Plata | Control de gastos</title>
+  <meta name="description" content="Controlá tus ingresos y gastos de forma simple con Mi Plata.">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root{--bg:#f5f7fb;--card:#fff;--ink:#182230;--muted:#687386;--line:#e4e9f1;--green:#147d58;--green-light:#e5f6ee;--red:#c0394b;--red-light:#fff0f1;--blue:#315bd6;--radius:18px}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    button,input,select{font:inherit}button{cursor:pointer;border:0;border-radius:12px;padding:12px 16px;font-weight:700}
+    .wrap{max-width:1050px;margin:auto;padding:24px 16px 48px}.brand{display:flex;align-items:center;gap:12px;margin-bottom:24px}.logo{width:44px;height:44px;border-radius:14px;background:var(--green);color:#fff;display:grid;place-items:center;font-size:24px;font-weight:800}.brand h1{font-size:22px;margin:0}.brand p{margin:0;color:var(--muted);font-size:14px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;box-shadow:0 5px 18px #18223008}.auth{max-width:460px;margin:32px auto}.auth h2,.section-title{margin:0 0 6px;font-size:22px}.sub{margin:0 0 20px;color:var(--muted)}.field{display:grid;gap:6px;margin:14px 0}.field label{font-size:14px;font-weight:700}.field input,.field select{width:100%;padding:12px 13px;border:1px solid #cfd7e3;border-radius:11px;background:#fff;color:var(--ink)}.primary{background:var(--green);color:white}.secondary{background:#edf1f6;color:var(--ink)}.danger{background:var(--red-light);color:var(--red)}.full{width:100%}.switch{display:flex;gap:8px;margin:16px 0}.switch button{flex:1}.switch .selected{background:var(--green-light);color:var(--green)}.notice{padding:12px 14px;border-radius:12px;margin:14px 0;font-size:14px;background:#edf4ff;color:#244b9b}.notice.error{background:var(--red-light);color:var(--red)}.hidden{display:none!important}
+    .topline{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}.userline{color:var(--muted);font-size:14px}.summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:18px 0}.stat{padding:18px}.stat .label{color:var(--muted);font-size:14px}.stat .amount{font-size:clamp(20px,3vw,28px);font-weight:800;margin-top:5px;overflow-wrap:anywhere}.income{color:var(--green)}.expense{color:var(--red)}.layout{display:grid;grid-template-columns: minmax(260px,.8fr) minmax(0,1.2fr);gap:16px;align-items:start}.movement{display:flex;justify-content:space-between;gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}.movement:last-child{border-bottom:0}.movement strong{display:block}.movement small{display:block;color:var(--muted);margin-top:3px}.movement-right{text-align:right;white-space:nowrap}.movement-right button{padding:5px 8px;margin-top:6px;font-size:12px}.filters{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}.filters select{padding:9px;border:1px solid var(--line);border-radius:10px;background:#fff}.empty{padding:28px 8px;text-align:center;color:var(--muted)}.foot{text-align:center;color:var(--muted);font-size:12px;margin-top:24px}
+    @media(max-width:720px){.summary{grid-template-columns:1fr}.layout{grid-template-columns:1fr}.wrap{padding:18px 12px 32px}.card{padding:18px}.stat{padding:15px}.topline{align-items:flex-start}}
+  </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div class="brand">
-      <div class="logo" aria-hidden="true">$</div>
-      <div><h1>Mi Plata</h1><div class="sub">Tu plata, más clara.</div></div>
-    </div>
-    <div class="pill">Versión inicial · Gratis</div>
-  </header>
+  <main class="wrap">
+    <header class="brand">
+      <div class="logo">$</div>
+      <div><h1>Mi Plata</h1><p>Tu plata, más clara.</p></div>
+    </header>
 
-  <section class="summary" aria-label="Resumen de tus finanzas">
-    <div class="card"><div class="metric-label">Ingresos del período</div><div class="metric green" id="totalIncome">$ 0</div></div>
-    <div class="card"><div class="metric-label">Gastos del período</div><div class="metric red" id="totalExpense">$ 0</div></div>
-    <div class="card"><div class="metric-label">Balance del período</div><div class="metric" id="balance">$ 0</div></div>
-  </section>
-
-  <main class="layout">
-    <section class="card">
-      <h2>Agregar movimiento</h2>
-      <form id="entryForm">
-        <label>Tipo de movimiento</label>
-        <div class="types">
-          <button class="type-btn active income" id="incomeBtn" type="button" aria-pressed="true">＋ Ingreso</button>
-          <button class="type-btn" id="expenseBtn" type="button" aria-pressed="false">− Gasto</button>
-        </div>
-        <label for="description">¿En qué consiste?</label>
-        <input id="description" maxlength="70" placeholder="Ej. Sueldo, supermercado..." required>
-        <label for="amount">Importe en pesos (ARS)</label>
-        <input id="amount" type="number" min="0.01" step="0.01" placeholder="Ej. 15000" required>
-        <label for="category">Categoría</label>
-        <select id="category">
-          <option>Salario</option><option>Trabajo extra</option><option>Ventas</option><option>Otros ingresos</option>
-        </select>
-        <label for="date">Fecha</label>
-        <input id="date" type="date" required>
-        <button class="primary" type="submit">Guardar movimiento</button>
-      </form>
-      <div class="notice">Tus movimientos se guardan en este navegador en esta computadora. Por ahora, no se sincronizan con otros dispositivos.</div>
-    </section>
-
-    <section class="card">
-      <div class="toolbar">
-        <h2>Movimientos</h2>
-        <select class="filter" id="monthFilter" aria-label="Filtrar por mes"><option value="all">Todos los meses</option></select>
+    <section id="authPanel" class="card auth">
+      <h2 id="authTitle">Entrá a tu cuenta</h2>
+      <p class="sub" id="authSubtitle">Ingresá para ver tus movimientos desde cualquier dispositivo.</p>
+      <div class="switch">
+        <button id="showLogin" class="selected secondary" type="button">Iniciar sesión</button>
+        <button id="showSignup" class="secondary" type="button">Crear cuenta</button>
       </div>
-      <div id="entries" class="list"></div>
+      <form id="authForm">
+        <div class="field"><label for="email">Correo electrónico</label><input id="email" type="email" autocomplete="email" required placeholder="vos@ejemplo.com"></div>
+        <div class="field"><label for="password">Contraseña</label><input id="password" type="password" minlength="6" autocomplete="current-password" required placeholder="Mínimo 6 caracteres"></div>
+        <button id="authSubmit" class="primary full" type="submit">Iniciar sesión</button>
+      </form>
+      <div id="authMessage" class="notice hidden" role="status"></div>
     </section>
+
+    <section id="appPanel" class="hidden">
+      <div class="topline">
+        <div><h2 class="section-title">Tu resumen</h2><div id="userEmail" class="userline"></div></div>
+        <button id="logoutBtn" class="secondary" type="button">Cerrar sesión</button>
+      </div>
+      <div class="summary">
+        <div class="card stat"><div class="label">Ingresos del mes</div><div id="incomeTotal" class="amount income">$ 0</div></div>
+        <div class="card stat"><div class="label">Gastos del mes</div><div id="expenseTotal" class="amount expense">$ 0</div></div>
+        <div class="card stat"><div class="label">Balance del mes</div><div id="balanceTotal" class="amount">$ 0</div></div>
+      </div>
+      <div class="layout">
+        <section class="card">
+          <h2 class="section-title">Anotar movimiento</h2>
+          <p class="sub">Completá los datos y guardá.</p>
+          <form id="movementForm">
+            <div class="field"><label for="type">Tipo</label><select id="type" required><option value="gasto">Gasto</option><option value="ingreso">Ingreso</option></select></div>
+            <div class="field"><label for="description">¿En qué fue?</label><input id="description" maxlength="100" required placeholder="Ej.: supermercado"></div>
+            <div class="field"><label for="category">Categoría</label><select id="category" required><option>Comida</option><option>Transporte</option><option>Vivienda</option><option>Servicios</option><option>Salud</option><option>Estudio</option><option>Ocio</option><option>Sueldo</option><option>Otros</option></select></div>
+            <div class="field"><label for="amount">Monto (ARS)</label><input id="amount" type="number" min="0.01" step="0.01" required placeholder="Ej.: 15000"></div>
+            <div class="field"><label for="date">Fecha</label><input id="date" type="date" required></div>
+            <button id="saveBtn" class="primary full" type="submit">Guardar movimiento</button>
+            <div id="movementMessage" class="notice hidden" role="status"></div>
+          </form>
+        </section>
+        <section class="card">
+          <h2 class="section-title">Tus movimientos</h2>
+          <div class="filters"><select id="monthFilter" aria-label="Filtrar por mes"></select><select id="typeFilter" aria-label="Filtrar por tipo"><option value="todos">Todos</option><option value="ingreso">Ingresos</option><option value="gasto">Gastos</option></select></div>
+          <div id="movementList"><div class="empty">Cargando movimientos...</div></div>
+        </section>
+      </div>
+    </section>
+    <footer class="foot">Mi Plata · Tus movimientos son privados para tu cuenta.</footer>
   </main>
-  <div class="foot">Mi Plata · Prototipo personal. No se conecta a bancos ni administra cuentas bancarias.</div>
-</div>
-<script>
-(() => {
-  const STORAGE_KEY = "mi-plata-movimientos-v1";
-  const $ = id => document.getElementById(id);
-  let type = "income";
-  let entries = [];
-  try { entries = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); if (!Array.isArray(entries)) entries = []; }
-  catch { entries = []; }
 
-  const today = new Date();
-  const localDate = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
-  $("date").value = localDate;
+  <script>
+    // Reemplazá estos dos valores por tu API URL y tu Publishable key de Supabase.
+    const SUPABASE_URL = "https://cvulmyvvbqgjwxuenojn.supabase.co/rest/v1/";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_VVQOhmbBc5Ae1YrrUUuOnw_zLDHe9vd";
 
-  const categories = {
-    income: ["Salario", "Trabajo extra", "Ventas", "Otros ingresos"],
-    expense: ["Comida", "Transporte", "Alquiler y servicios", "Compras", "Salud", "Entretenimiento", "Deudas", "Otros gastos"]
-  };
+    const $ = (id) => document.getElementById(id);
+    const configured = SUPABASE_URL.startsWith("https://") &&
+      SUPABASE_URL.endsWith(".supabase.co") &&
+      !SUPABASE_URL.includes("PEGAR_AQUI") &&
+      !SUPABASE_PUBLISHABLE_KEY.includes("PEGAR_AQUI");
+    let supabaseClient = null;
+    let currentUser = null;
+    let movements = [];
+    let isSignup = false;
 
-  function money(value) {
-    return new Intl.NumberFormat("es-AR", { style:"currency", currency:"ARS", maximumFractionDigits:2 }).format(value);
-  }
-  function save() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); }
-    catch { alert("No se pudieron guardar los datos en este navegador."); }
-  }
-  function setType(next) {
-    type = next;
-    $("incomeBtn").className = "type-btn" + (type === "income" ? " active income" : "");
-    $("expenseBtn").className = "type-btn" + (type === "expense" ? " active expense" : "");
-    $("incomeBtn").setAttribute("aria-pressed", String(type === "income"));
-    $("expenseBtn").setAttribute("aria-pressed", String(type === "expense"));
-    const current = $("category").value;
-    $("category").innerHTML = "";
-    categories[type].forEach(cat => {
-      const option = document.createElement("option");
-      option.textContent = cat;
-      $("category").appendChild(option);
-    });
-    if (categories[type].includes(current)) $("category").value = current;
-  }
-  function buildMonthFilter() {
-    const select = $("monthFilter");
-    const previous = select.value;
-    const months = [...new Set(entries.map(e => e.date.slice(0,7)))].sort().reverse();
-    select.innerHTML = '<option value="all">Todos los meses</option>';
-    months.forEach(month => {
-      const [year, mon] = month.split("-");
-      const label = new Intl.DateTimeFormat("es-AR", { month:"long", year:"numeric" }).format(new Date(Number(year), Number(mon)-1, 1));
-      const opt = document.createElement("option");
-      opt.value = month; opt.textContent = label.charAt(0).toUpperCase() + label.slice(1);
-      select.appendChild(opt);
-    });
-    if ([...select.options].some(o => o.value === previous)) select.value = previous;
-  }
-  function render() {
-    buildMonthFilter();
-    const month = $("monthFilter").value;
-    const visible = entries.filter(e => month === "all" || e.date.startsWith(month)).sort((a,b) => b.date.localeCompare(a.date) || b.createdAt-a.createdAt);
-    const income = visible.filter(e => e.type === "income").reduce((sum,e) => sum + e.amount, 0);
-    const expense = visible.filter(e => e.type === "expense").reduce((sum,e) => sum + e.amount, 0);
-    $("totalIncome").textContent = money(income);
-    $("totalExpense").textContent = money(expense);
-    $("balance").textContent = money(income-expense);
-    $("balance").className = "metric " + (income-expense < 0 ? "red" : "green");
-
-    const list = $("entries");
-    list.innerHTML = "";
-    if (!visible.length) {
-      const empty = document.createElement("div");
-      empty.className = "empty";
-      empty.innerHTML = "Todavía no hay movimientos.<br>Agregá tu primer ingreso o gasto usando el formulario.";
-      list.appendChild(empty);
-      return;
+    function showMessage(el, text, error=false) {
+      el.textContent = text;
+      el.classList.remove("hidden", "error");
+      if (error) el.classList.add("error");
     }
-    visible.forEach(e => {
-      const row = document.createElement("div"); row.className = "item";
-      const icon = document.createElement("div"); icon.className = "item-icon"; icon.textContent = e.type === "income" ? "↙" : "↗";
-      const info = document.createElement("div"); info.className = "item-info";
-      const title = document.createElement("div"); title.className = "item-title"; title.textContent = e.description;
-      const meta = document.createElement("div"); meta.className = "item-meta";
-      const [y,m,d] = e.date.split("-");
-      meta.textContent = `${e.category} · ${d}/${m}/${y}`;
-      info.append(title,meta);
-      const amount = document.createElement("div"); amount.className = "amount " + (e.type === "income" ? "green" : "red");
-      amount.textContent = `${e.type === "income" ? "+" : "−"} ${money(e.amount)}`;
-      const del = document.createElement("button"); del.className = "delete"; del.type = "button"; del.title = "Eliminar movimiento"; del.setAttribute("aria-label","Eliminar " + e.description); del.textContent = "×";
-      del.addEventListener("click", () => {
-        if (confirm(`¿Querés eliminar el movimiento "${e.description}"?`)) {
-          entries = entries.filter(item => item.id !== e.id); save(); render();
+    function hideMessage(el) { el.textContent = ""; el.classList.add("hidden"); el.classList.remove("error"); }
+    function ars(value) {
+      return new Intl.NumberFormat("es-AR", {style:"currency",currency:"ARS",maximumFractionDigits:2}).format(Number(value)||0);
+    }
+    function localToday() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    }
+    function monthOf(date) { return String(date || "").slice(0,7); }
+    function monthLabel(month) {
+      const [y,m] = month.split("-").map(Number);
+      return new Date(y,m-1,1).toLocaleDateString("es-AR",{month:"long",year:"numeric"});
+    }
+    function setAuthMode(signup) {
+      isSignup = signup;
+      $("authTitle").textContent = signup ? "Creá tu cuenta" : "Entrá a tu cuenta";
+      $("authSubtitle").textContent = signup ? "Registrate para guardar tus movimientos en la nube." : "Ingresá para ver tus movimientos desde cualquier dispositivo.";
+      $("authSubmit").textContent = signup ? "Crear cuenta" : "Iniciar sesión";
+      $("showLogin").classList.toggle("selected",!signup);
+      $("showSignup").classList.toggle("selected",signup);
+      $("password").autocomplete = signup ? "new-password" : "current-password";
+      hideMessage($("authMessage"));
+    }
+    function showApp(user) {
+      currentUser = user;
+      $("authPanel").classList.add("hidden");
+      $("appPanel").classList.remove("hidden");
+      $("userEmail").textContent = user.email || "";
+      $("date").value = localToday();
+      loadMovements();
+    }
+    function showAuth() {
+      currentUser = null;
+      movements = [];
+      $("appPanel").classList.add("hidden");
+      $("authPanel").classList.remove("hidden");
+      $("password").value = "";
+    }
+    function setupMonthFilter() {
+      const select = $("monthFilter");
+      const current = localToday().slice(0,7);
+      const months = new Set([current, ...movements.map(m=>monthOf(m.fecha))]);
+      select.innerHTML = [...months].filter(Boolean).sort().reverse().map(m=>`<option value="${m}">${monthLabel(m)}</option>`).join("");
+      select.value = current;
+    }
+    function renderMovements() {
+      const selectedMonth = $("monthFilter").value || localToday().slice(0,7);
+      const type = $("typeFilter").value;
+      const monthMoves = movements.filter(m=>monthOf(m.fecha)===selectedMonth);
+      const income = monthMoves.filter(m=>m.tipo==="ingreso").reduce((s,m)=>s+Number(m.monto),0);
+      const expense = monthMoves.filter(m=>m.tipo==="gasto").reduce((s,m)=>s+Number(m.monto),0);
+      $("incomeTotal").textContent = ars(income);
+      $("expenseTotal").textContent = ars(expense);
+      $("balanceTotal").textContent = ars(income-expense);
+      $("balanceTotal").className = "amount " + (income-expense<0 ? "expense" : "income");
+      const filtered = monthMoves.filter(m=>type==="todos"||m.tipo===type).sort((a,b)=>b.fecha.localeCompare(a.fecha)||b.id-a.id);
+      const list = $("movementList");
+      if (!filtered.length) {
+        list.innerHTML = '<div class="empty">Todavía no hay movimientos para este filtro.<br>Cuando agregues uno, aparecerá acá.</div>';
+        return;
+      }
+      list.innerHTML = filtered.map(m=>`
+        <article class="movement">
+          <div><strong>${escapeHtml(m.descripcion)}</strong><small>${escapeHtml(m.categoria)} · ${new Date(m.fecha+"T12:00:00").toLocaleDateString("es-AR")}</small></div>
+          <div class="movement-right"><strong class="${m.tipo==="ingreso"?"income":"expense"}">${m.tipo==="ingreso"?"+":"−"} ${ars(m.monto)}</strong><br><button class="danger" type="button" data-delete="${m.id}">Eliminar</button></div>
+        </article>`).join("");
+      list.querySelectorAll("[data-delete]").forEach(btn=>btn.addEventListener("click",()=>deleteMovement(btn.dataset.delete)));
+    }
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+    }
+    async function loadMovements() {
+      $("movementList").innerHTML = '<div class="empty">Cargando movimientos...</div>';
+      const {data,error} = await supabaseClient.from("movimientos").select("id,tipo,descripcion,categoria,monto,fecha").eq("user_id",currentUser.id).order("fecha",{ascending:false});
+      if (error) {
+        $("movementList").innerHTML = '<div class="notice error">No pudimos cargar los movimientos. Revisá la conexión y volvé a intentar.</div>';
+        console.error(error);
+        return;
+      }
+      movements = data || [];
+      setupMonthFilter();
+      renderMovements();
+    }
+    async function deleteMovement(id) {
+      if (!confirm("¿Querés eliminar este movimiento?")) return;
+      const {error} = await supabaseClient.from("movimientos").delete().eq("id",id).eq("user_id",currentUser.id);
+      if (error) { alert("No se pudo eliminar. Probá de nuevo."); console.error(error); return; }
+      await loadMovements();
+    }
+
+    $("showLogin").addEventListener("click",()=>setAuthMode(false));
+    $("showSignup").addEventListener("click",()=>setAuthMode(true));
+    $("authForm").addEventListener("submit",async e=>{
+      e.preventDefault();
+      hideMessage($("authMessage"));
+      if (!configured || !supabaseClient) {
+        showMessage($("authMessage"),"Falta configurar la conexión con Supabase en el código de la aplicación.",true);
+        return;
+      }
+      const email = $("email").value.trim();
+      const password = $("password").value;
+      $("authSubmit").disabled = true;
+      $("authSubmit").textContent = "Un momento...";
+      try {
+        if (isSignup) {
+          const {data,error} = await supabaseClient.auth.signUp({email,password});
+          if (error) throw error;
+          if (data.session && data.user) {
+            showMessage($("authMessage"),"¡Cuenta creada! Ya podés empezar a usar Mi Plata.");
+            showApp(data.user);
+          } else {
+            showMessage($("authMessage"),"¡Casi listo! Revisá tu correo y confirmá la cuenta. Después volvé e iniciá sesión.");
+          }
+        } else {
+          const {data,error} = await supabaseClient.auth.signInWithPassword({email,password});
+          if (error) throw error;
+          showApp(data.user);
         }
-      });
-      row.append(icon,info,amount,del); list.appendChild(row);
+      } catch (err) {
+        showMessage($("authMessage"),err.message || "No se pudo completar la operación. Revisá los datos e intentá de nuevo.",true);
+      } finally {
+        $("authSubmit").disabled = false;
+        $("authSubmit").textContent = isSignup ? "Crear cuenta" : "Iniciar sesión";
+      }
     });
-  }
+    $("logoutBtn").addEventListener("click",async()=>{
+      await supabaseClient.auth.signOut();
+      showAuth();
+    });
+    $("movementForm").addEventListener("submit",async e=>{
+      e.preventDefault();
+      hideMessage($("movementMessage"));
+      if (!currentUser) return;
+      const monto = Number($("amount").value);
+      if (!Number.isFinite(monto)||monto<=0) {
+        showMessage($("movementMessage"),"Ingresá un monto mayor que cero.",true);
+        return;
+      }
+      $("saveBtn").disabled = true;
+      $("saveBtn").textContent = "Guardando...";
+      const entry = {
+        user_id: currentUser.id,
+        tipo: $("type").value,
+        descripcion: $("description").value.trim(),
+        categoria: $("category").value,
+        monto,
+        fecha: $("date").value
+      };
+      try {
+        const {error} = await supabaseClient.from("movimientos").insert(entry);
+        if (error) throw error;
+        $("movementForm").reset();
+        $("date").value = localToday();
+        showMessage($("movementMessage"),"¡Movimiento guardado!");
+        await loadMovements();
+      } catch(err) {
+        showMessage($("movementMessage"),"No se pudo guardar el movimiento. Revisá la conexión e intentá de nuevo.",true);
+        console.error(err);
+      } finally {
+        $("saveBtn").disabled = false;
+        $("saveBtn").textContent = "Guardar movimiento";
+      }
+    });
+    $("monthFilter").addEventListener("change",renderMovements);
+    $("typeFilter").addEventListener("change",renderMovements);
 
-  $("incomeBtn").addEventListener("click", () => setType("income"));
-  $("expenseBtn").addEventListener("click", () => setType("expense"));
-  $("monthFilter").addEventListener("change", render);
-  $("entryForm").addEventListener("submit", event => {
-    event.preventDefault();
-    const description = $("description").value.trim();
-    const amount = Number($("amount").value);
-    const date = $("date").value;
-    if (!description || !Number.isFinite(amount) || amount <= 0 || !date) {
-      alert("Completá la descripción, un importe mayor que cero y la fecha."); return;
+    if (configured && window.supabase && window.supabase.createClient) {
+      supabaseClient = window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+      supabaseClient.auth.getSession().then(({data})=>{
+        if (data.session) showApp(data.session.user);
+      });
+      supabaseClient.auth.onAuthStateChange((_event,session)=>{
+        if (session && !currentUser) showApp(session.user);
+        else if (!session && currentUser) showAuth();
+      });
+    } else {
+      showMessage($("authMessage"),"Antes de usar la app, reemplazá la URL y la clave pública de ejemplo en el código por las de tu proyecto Supabase.",true);
     }
-    entries.push({
-      id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2),
-      type, description, amount, category:$("category").value, date, createdAt:Date.now()
-    });
-    save();
-    $("description").value = ""; $("amount").value = "";
-    render();
-  });
-  setType("income");
-  render();
-})();
-</script>
+  </script>
 </body>
 </html>
